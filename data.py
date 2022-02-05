@@ -143,6 +143,7 @@ class DataProvider:
         self.claim = claim
         self.get_url = get_url
 
+
         self.user_stats = '499224b4-30a6-43d7-80b9-3a019cbb1d3d'
         self.deposits_bucket = 'b4953cda-a874-43fa-b78d-ceb0c1bfc3cf'
         self.deposit_balance = '9e2e9587-0850-466a-8a59-4dda2e8337f3'
