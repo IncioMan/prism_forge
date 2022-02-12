@@ -14,8 +14,8 @@ The project has been supported by [flipside](https://flipsidecrypto.xyz/)
 
 In case the websites are not online anymore, here are some screenshots of the dashboard
 
-<img src="images/screenshot1.png" width="600">
+<img src="images/screenshot1.png" width="800">
 
-<img src="images/screenshot2.png" width="600">
+<img src="images/screenshot2.png" width="800">
 
 You can see the official Tweet announcing the dashboard [here](https://twitter.com/flipsidecrypto/status/1488537679046352896?s=20&t=fEBu1vCFU1lG2pYG3iaWHQ).
