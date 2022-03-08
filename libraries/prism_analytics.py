@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[305]:
+# In[23]:
 
 
 import pandas as pd
@@ -14,7 +14,7 @@ pd.set_option("display.max_colwidth", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[431]:
+# In[126]:
 
 
 class DataProvider:
@@ -29,6 +29,11 @@ class DataProvider:
         self.claim = claim
         self.get_url = get_url
         self.path_to_data = path_to_data
+        self.dates_to_mark = pd.DataFrame([
+            ['2022-02-13', '2022-02-13',1300000,'Prism Forge'], 
+            ['2022-03-06', '2022-03-06',2100000,'Prism Farm']], 
+            columns=['text_date','date','height','text']
+        )
         
     def load_from_url(self):
         self.ystaking_farm_df = self.claim(self.ystaking_farm)
@@ -161,24 +166,57 @@ class DataProvider:
         self.polish_ystaking()
         self.polish_ystaking_farm()
         
-  
+    def fill_date_gaps(self, dff, extra_dates=[]):
+        dd = dff.Time.unique()
+        dd = [*dd,*extra_dates]
+        unique_dates = pd.Series(dd).rename('Time').reset_index().drop(columns='index')
+        for t in dff.Type.unique():
+            df = dff[dff.Type==t].merge(unique_dates, how='right').fillna(0)
+            df['Type'] = t
+            dff = dff.append(df)
+        dff = dff.drop_duplicates()
+        return dff
+
+
+# In[127]:
+
+
+def claim(claim_hash):
+    df = pd.read_json(
+            f"https://api.flipsidecrypto.com/api/v2/queries/{claim_hash}/data/latest",
+            convert_dates=["BLOCK_TIMESTAMP"])
+    df.columns = [c.lower() for c in df.columns]
+    return df
+
+
+# In[128]:
+
+
+def get_url(url):
+    return pd.read_csv(url, index_col=0)
+
+
+# In[154]:
+
+
 class ChartProvider:
     def __init__(self):
         pass
     
-    def get_line_chart(self, df, domain=[], range_=[], min_date=None, max_date=None, top_padding=0):
+    def get_line_chart(self, df, scale_, min_date=None, max_date=None, top_padding=0):
         max_date = df['Time'].max()
+        df['Amount (millions)'] = round(df['Amount']/1000000,2).apply(str)+'M'
         chart = alt.Chart(df).mark_line(point = True).encode(
             x=alt.X('Time:T',scale=alt.Scale(domain=(min_date,max_date))),
             y=alt.X('Amount:Q',scale=alt.Scale(domain=(0,df['Amount'].max()+top_padding))),
             color=alt.Color('Type:N', 
-                        sort=domain,
-                        scale=alt.Scale(domain=domain, range=range_),
+                        scale=scale_,
                         legend=alt.Legend(
                                     orient='none',
                                     padding=5,
                                     legendY=0,
-                                    direction='horizontal')),
-            tooltip=[alt.Tooltip('Time:T', format='%Y-%m-%d %H:%M'),'Amount:Q']
-        ).properties(width=800).configure_view(strokeOpacity=0)
+                                    direction='vertical')),
+            tooltip=[alt.Tooltip('Time:T', format='%Y-%m-%d %H:%M'),'Type:N','Amount (millions):N']
+        )
         return chart
+

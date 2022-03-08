@@ -37,13 +37,28 @@ dp.polish()
 ###
 ###
 all_deltas = dp.daily_delta_rf.append(dp.daily_delta_stk).append(dp.daily_delta_lp).append(dp.daily_delta_stk_farm)
-chart = cp.get_line_chart(all_deltas, 
-               domain = ['yLuna staked','yLuna circulating','yLuna LP','yLuna Farm staked'],
-               range_ = ['#f8936d','lightblue','green', 'red'],
+all_deltas = dp.fill_date_gaps(all_deltas, ['2022-02-12','2022-02-13'])
+c1 = cp.get_line_chart(all_deltas, 
+               alt.Scale(scheme='set2'),
                min_date = all_deltas.Time.min(),
                max_date = all_deltas.Time.max(),
                top_padding = 10000
         )
+
+c2 = alt.Chart(dp.dates_to_mark).mark_rule(color='#e45756').encode(
+    x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
+)
+
+c3 = alt.Chart(dp.dates_to_mark).mark_text(
+    color='#e45756',
+    angle=0
+).encode(
+    x=alt.X('text_date'+':T',axis=alt.Axis(labels=False,title='')),
+    y='height',
+    text='text'
+)
+
+chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 st.subheader('Distribution across deposit and withdrawals percentage buckets')
 st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
 st.altair_chart(chart, use_container_width=True)
@@ -69,13 +84,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-hide_streamlit_style = """
-                        <style>
-                        
-                        footer {visibility: hidden;}
-                        </style>
-                        """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 st.markdown("""
 <style>
 .terminated {
@@ -123,3 +131,10 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+hide_streamlit_style = """
+                        <style>
+                        #MainMenu {visibility: hidden;}
+                        footer {visibility: hidden;}
+                        </style>
+                        """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
