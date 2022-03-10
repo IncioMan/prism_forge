@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-contract = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
+contract = 'terra17wkadg0tah554r35x6wvff0y5s7ve8npcjfuhz'
 txs = requests.get(f"https://api.extraterrestrial.money/v1/txs/by_account?account={contract}&order=desc&offset=0&limit=100").json()
 
 limit = 100
@@ -31,3 +31,5 @@ while(True):
 txs = pd.DataFrame(tx_hashes, columns=['hash','timestamp'])
 txs.to_csv(f'./data/txs/{contract}.csv')
 txs
+
+
