@@ -4,7 +4,7 @@ import altair as alt
 from charts import ChartProvider
 import requests
 from PIL import Image
-from libraries.prism_analytics import DataProvider, ChartProvider
+from libraries.prism_analytics import DataProvider, ChartProvider, LPDataProvider, SwapsDataProvider, RefractDataProvider, CollectorDataProvider, YLunaStakingDataProvider
 
 st.set_page_config(page_title="Prism Forge - Analytics",\
         page_icon=Image.open(requests.get('https://raw.githubusercontent.com/IncioMan/prism_forge/master/images/xPRISM.png',stream=True).raw),\
@@ -13,16 +13,11 @@ st.set_page_config(page_title="Prism Forge - Analytics",\
 ###
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
-def claim(claim_hash, cols_claim):
-    try:
-        df_claim = pd.read_json(
-            f"https://api.flipsidecrypto.com/api/v2/queries/{claim_hash}/data/latest",
-            convert_dates=["BLOCK_TIMESTAMP"],
-        )
-    except:
-        return pd.DataFrame(columns = cols_claim[claim_hash])
-    if(len(df_claim.columns)==0):
-        return pd.DataFrame(columns = cols_claim[claim_hash])
+def claim(claim_hash, cols_claim=[]):
+    df_claim = pd.read_json(
+        f"https://api.flipsidecrypto.com/api/v2/queries/{claim_hash}/data/latest",
+        convert_dates=["BLOCK_TIMESTAMP"],
+    )
     return df_claim
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
@@ -30,26 +25,91 @@ def get_url(url):
     return pd.read_csv(url, index_col=0)
     
 cp = ChartProvider()
-dp = DataProvider(claim,get_url,path_to_data='./data')
-dp.load_from_csv()
-dp.polish()
+
+ystake_dp = YLunaStakingDataProvider(claim,get_url,'./data')
+#ystake_dp.load_from_url()
+#ystake_dp.write_to_csv()
+ystake_dp.load_from_csv()
+ystake_dp.parse()
+
+refract_dp = RefractDataProvider(claim,get_url,'./data')
+#refract_dp.load_from_url()
+#refract_dp.write_to_csv()
+refract_dp.load_from_csv()
+refract_dp.parse()
+
+
+# In[297]:
+
+
+swaps_dp = SwapsDataProvider(claim,get_url,'./data')
+#swaps_dp.load_from_url()
+#swaps_dp.write_to_csv()
+swaps_dp.load_from_csv()
+swaps_dp.parse()
+
+
+# In[299]:
+
+
+lp_dp = LPDataProvider(claim,get_url,'./data')
+#lp_dp.load_from_url()
+#lp_dp.write_to_csv()
+lp_dp.load_from_csv()
+lp_dp.parse()
+
+
+# In[301]:
+
+
+collector_dp = CollectorDataProvider(claim,get_url,'./data')
+#collector_dp.load_from_url()
+#collector_dp.write_to_csv()
+collector_dp.load_from_csv()
+collector_dp.parse(lp_dp.withdraw_, lp_dp.provide_, swaps_dp.swaps_df_all)
+
+
+# In[303]:
+
+
+ydp = DataProvider('yLuna')
+ydp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='yLuna'],
+            lp_dp.provide_[lp_dp.provide_.asset=='yLuna'], 
+            swaps_dp.yluna_swaps, collector_dp.collector_pyluna[collector_dp.collector_pyluna.asset=='yLuna'])
+ydp.stk_delta(ystake_dp.ystaking_df)
+ydp.stk_farm_delta(ystake_dp.ystaking_farm_df)
+ydp.refact_delta(refract_dp.all_refreact)
+ydp.all_delta()
+ydp.unused_asset(ydp.all_deltas)
+
+
+# In[304]:
+
+
+pdp = DataProvider('pLuna')
+pdp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='pLuna'],
+            lp_dp.provide_[lp_dp.provide_.asset=='pLuna'], 
+            swaps_dp.yluna_swaps, collector_dp.collector_pyluna[collector_dp.collector_pyluna.asset=='pLuna'])
+pdp.refact_delta(refract_dp.all_refreact)
+pdp.all_delta()
+pdp.unused_asset(pdp.all_deltas)
 
 ###
 ###
-all_deltas = dp.daily_delta_rf.append(dp.daily_delta_stk).append(dp.daily_delta_lp).append(dp.daily_delta_stk_farm)
-all_deltas = dp.fill_date_gaps(all_deltas, ['2022-02-12','2022-02-13'])
-c1 = cp.get_line_chart(all_deltas, 
+all_deltas = ydp.asset_used.append(ydp.asset_unused)
+all_deltas = ydp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
+c1 = cp.get_yluna_time_area_chart(all_deltas, 
                alt.Scale(scheme='set2'),
                min_date = all_deltas.Time.min(),
                max_date = all_deltas.Time.max(),
-               top_padding = 10000
+               top_padding = 1500000
         )
 
-c2 = alt.Chart(dp.dates_to_mark).mark_rule(color='#e45756').encode(
+c2 = alt.Chart(ydp.dates_to_mark).mark_rule(color='#e45756').encode(
     x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
 )
 
-c3 = alt.Chart(dp.dates_to_mark).mark_text(
+c3 = alt.Chart(ydp.dates_to_mark).mark_text(
     color='#e45756',
     angle=0
 ).encode(
@@ -58,32 +118,41 @@ c3 = alt.Chart(dp.dates_to_mark).mark_text(
     text='text'
 )
 
-chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
-st.subheader('Distribution across deposit and withdrawals percentage buckets')
-st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
-st.altair_chart(chart, use_container_width=True)
+yluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 
-st.markdown("""
-<style>
-    @media (min-width:640px) {
-        .block-container {
-            padding-left: 5rem;
-            padding-right: 5rem;
-        }
-    }
-    @media (min-width:800px) {
-        .block-container {
-            padding-left: 15rem;
-            padding-right: 15rem;
-        }
-    }
-    .block-container
-    {
-        padding-bottom: 1rem;
-        padding-top: 5rem;
-    }
-</style>
-""", unsafe_allow_html=True)
+all_deltas = pdp.asset_used.append(pdp.asset_unused)
+all_deltas = pdp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
+c1 = cp.get_yluna_time_area_chart(all_deltas, 
+               alt.Scale(scheme='set2'),
+               min_date = all_deltas.Time.min(),
+               max_date = all_deltas.Time.max(),
+               top_padding = 1500000
+        )
+
+c2 = alt.Chart(pdp.dates_to_mark).mark_rule(color='#e45756').encode(
+    x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
+)
+
+c3 = alt.Chart(pdp.dates_to_mark).mark_text(
+    color='#e45756',
+    angle=0
+).encode(
+    x=alt.X('text_date'+':T',axis=alt.Axis(labels=False,title='')),
+    y='height',
+    text='text'
+)
+
+pluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
+
+col1, col2 = st.columns([4,4])
+with col1:
+    st.subheader('Distribution across deposit and withdrawals percentage buckets')
+    st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
+    st.altair_chart(yluna_chart, use_container_width=True)
+with col2:
+    st.subheader('Distribution across deposit and withdrawals percentage buckets')
+    st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
+    st.altair_chart(pluna_chart, use_container_width=True)
 st.markdown("""
 <style>
 .terminated {

@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-contract = 'terra17wkadg0tah554r35x6wvff0y5s7ve8npcjfuhz'
+contract = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 txs = requests.get(f"https://api.extraterrestrial.money/v1/txs/by_account?account={contract}&order=desc&offset=0&limit=100").json()
 
 limit = 100
