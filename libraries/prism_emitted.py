@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[23]:
 
 
 import pandas as pd
@@ -16,7 +16,7 @@ pd.set_option("display.max_rows", 400)
 alt.renderers.set_embed_options(theme='dark')
 
 
-# In[ ]:
+# In[24]:
 
 
 class PrismEmittedDataProvider():
@@ -27,17 +27,19 @@ class PrismEmittedDataProvider():
     def dates_to_mark(self):
         dates_to_mark = []
         start_farm = datetime.date(2022, 3, 5)
+        shift = 3
         date_ = start_farm+datetime.timedelta(days=int(365/100*10))
-        dates_to_mark.append((8000000,'10%',date_+datetime.timedelta(days=-1),date_))
+        dates_to_mark.append((8000000,'10%',date_+datetime.timedelta(days=-shift),date_))
         date_ = start_farm+datetime.timedelta(days=int(365/100*30))
-        dates_to_mark.append((8000000,'30%',date_+datetime.timedelta(days=-1),date_))
+        dates_to_mark.append((8000000,'30%',date_+datetime.timedelta(days=-shift),date_))
         date_ = start_farm+datetime.timedelta(days=int(365/100*50))
-        dates_to_mark.append((8000000,'50%',date_+datetime.timedelta(days=-1),date_))
+        dates_to_mark.append((8000000,'50%',date_+datetime.timedelta(days=-shift),date_))
         date_ = start_farm+datetime.timedelta(days=int(365))
-        dates_to_mark.append((8000000,'100%',date_+datetime.timedelta(days=-1),date_))
-        dates_to_mark = pd.DataFrame(dates_to_mark,columns=['height','text','text_date','date'])
-        dates_to_mark.date = dates_to_mark.date.apply(str)
+        dates_to_mark.append((8000000,'100%',date_+datetime.timedelta(days=-shift),date_))
+        dates_to_mark = pd.DataFrame(dates_to_mark,columns=['height','text','text_date','Date'])
+        dates_to_mark.Date = dates_to_mark.Date.apply(str)
         dates_to_mark.text_date = dates_to_mark.text_date.apply(str)
+        dates_to_mark = dates_to_mark.merge(self.prism_emitted[['Date','Total Prism']],on='Date')
         self.dates_to_mark = dates_to_mark
     
     def calulcate_emission(self):
@@ -62,14 +64,13 @@ class PrismEmittedDataProvider():
         self.prism_emitted_so_far = df[df.Date<str(datetime.datetime.today().date())]
 
 
-# In[ ]:
+# In[25]:
 
 
 pe_dp = PrismEmittedDataProvider()
-pe_dp.prism_emitted.head()
 
 
-# In[ ]:
+# In[26]:
 
 
 class PrismEmittedChartProvider:
@@ -84,8 +85,8 @@ class PrismEmittedChartProvider:
         return cum_ust_chart
     def prism_emitted_so_far(self, prism_emitted_so_far):
         chart = alt.Chart(prism_emitted_so_far).mark_area().encode(
-            x=alt.X('Date:T', scale=alt.Scale(domain=(prism_emitted_so_far.Date.min(),'2022-07-05'))),
-            y=alt.Y('Amount:Q',scale=alt.Scale(domain=(0,40000000))),
+            x=alt.X('Date:T', scale=alt.Scale(domain=(prism_emitted_so_far.Date.min(),'2022-04-15'))),
+            y=alt.Y('Amount:Q',scale=alt.Scale(domain=(0,16000000))),
             color=alt.Color('Type:N',
                         legend=alt.Legend(
                                     orient='none',
@@ -98,7 +99,7 @@ class PrismEmittedChartProvider:
     
     def dates_to_mark(self, dates_to_mark):
         c2 = alt.Chart(dates_to_mark).mark_rule(color='#e45756').encode(
-            x=alt.X('date'+':T')
+            x='Date'+':T'
         )
 
         c3 = alt.Chart(dates_to_mark).mark_text(
@@ -120,7 +121,7 @@ class PrismEmittedChartProvider:
                 ).properties(width=900).configure_axis(grid=False).configure_view(strokeOpacity=0).interactive()
 
 
-# In[ ]:
+# In[27]:
 
 
 cp = PrismEmittedChartProvider()

@@ -153,12 +153,12 @@ prism_emitted_chart = cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_em
 st.altair_chart(prism_emitted_chart, use_container_width=True)
 col1, col2 = st.columns([4,4])
 with col1:
-    st.subheader('Distribution across deposit and withdrawals percentage buckets')
-    st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
+    st.subheader('yLuna usage')
+    st.markdown("""How is yLuna used? Staked or in the liquidity pool? What happened over time?""")
     st.altair_chart(yluna_chart, use_container_width=True)
 with col2:
-    st.subheader('Distribution across deposit and withdrawals percentage buckets')
-    st.markdown("""This graph shows the number of users which had deposited a specific amount and withdrawn a specific percentage""")
+    st.subheader('pLuna usage')
+    st.markdown("""How much pLuna is put to use? How much is idle? What happened over time?""")
     st.altair_chart(pluna_chart, use_container_width=True)
 st.markdown("""
 <style>
