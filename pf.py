@@ -3,8 +3,10 @@ import pandas as pd
 import altair as alt
 from charts import ChartProvider
 import requests
+import datetime
 from PIL import Image
 from libraries.prism_analytics import DataProvider, ChartProvider, LPDataProvider, SwapsDataProvider, RefractDataProvider, CollectorDataProvider, YLunaStakingDataProvider
+from libraries.prism_emitted import PrismEmittedChartProvider, PrismEmittedDataProvider
 
 st.set_page_config(page_title="Prism Forge - Analytics",\
         page_icon=Image.open(requests.get('https://raw.githubusercontent.com/IncioMan/prism_forge/master/images/xPRISM.png',stream=True).raw),\
@@ -144,6 +146,11 @@ c3 = alt.Chart(pdp.dates_to_mark).mark_text(
 
 pluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 
+pe_dp = PrismEmittedDataProvider()
+cp = PrismEmittedChartProvider()
+prism_emitted_chart = cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark)
+
+st.altair_chart(prism_emitted_chart, use_container_width=True)
 col1, col2 = st.columns([4,4])
 with col1:
     st.subheader('Distribution across deposit and withdrawals percentage buckets')
