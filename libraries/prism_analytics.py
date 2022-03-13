@@ -416,8 +416,10 @@ class CollectorDataProvider:
     def parse(self,withdraw_,provide_,swaps):
         self.lp_txs = withdraw_[['tx_id']].append(provide_[['tx_id']]).append(swaps[['tx_id']])
         self.lp_txs.columns = [c.lower() for c in self.lp_txs.columns]
+        self.collector_df.columns = [c.lower() for c in self.collector_df.columns]
         collector_df = self.collector_df
-        collector_df.block_timestamp=self.collector_df.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
+        print(collector_df.columns)
+        collector_df.block_timestamp=collector_df.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         collector_df.block_timestamp=collector_df.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
         collector_df['hr'] = collector_df.block_timestamp.str[:-5] + '00:00.000'
         collector_df['day'] = collector_df.block_timestamp.str[:-9]
