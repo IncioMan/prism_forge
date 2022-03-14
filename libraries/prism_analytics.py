@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[121]:
+# In[364]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[122]:
+# In[365]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -25,7 +25,7 @@ pLuna_PRISM_Pair = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 yLuna_PRISM_Pair = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
 
 
-# In[123]:
+# In[366]:
 
 
 def claim(claim_hash):
@@ -36,14 +36,14 @@ def claim(claim_hash):
     return df
 
 
-# In[124]:
+# In[367]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[125]:
+# In[368]:
 
 
 class ChartProvider:
@@ -68,7 +68,7 @@ class ChartProvider:
         return chart
 
 
-# In[126]:
+# In[369]:
 
 
 class RefractDataProvider:
@@ -101,6 +101,7 @@ class RefractDataProvider:
         self.refract_cluna_df_pol['operation'] = 'refraction'
         self.refract_cluna_df_pol.block_timestamp=self.refract_cluna_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.refract_cluna_df_pol.block_timestamp=self.refract_cluna_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        self.refract_cluna_df_pol.block_timestamp=self.refract_cluna_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x) 
         self.refract_cluna_df_pol['hr'] = self.refract_cluna_df_pol.block_timestamp.str[:-5] + '00:00.000'
         self.refract_cluna_df_pol['day'] = self.refract_cluna_df_pol.block_timestamp.str[:-9]
         self.refract_cluna_df_pol['amount_signed'] = self.refract_cluna_df_pol.amount
@@ -116,6 +117,7 @@ class RefractDataProvider:
         self.refract_df_pol['operation'] = 'refraction'
         self.refract_df_pol.block_timestamp=self.refract_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.refract_df_pol.block_timestamp=self.refract_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        self.refract_df_pol.block_timestamp=self.refract_df_pol.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x)
         self.refract_df_pol['hr'] = self.refract_df_pol.block_timestamp.str[:-5] + '00:00.000'
         self.refract_df_pol['day'] = self.refract_df_pol.block_timestamp.str[:-9]
         self.refract_df_pol['amount_signed'] = self.refract_df_pol.apply(lambda row: -row.amount 
@@ -133,7 +135,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[128]:
+# In[370]:
 
 
 class YLunaStakingDataProvider:
@@ -165,6 +167,7 @@ class YLunaStakingDataProvider:
         self.ystaking_df['asset_received'] = self.ystaking_df.apply(lambda row: 'yLUNA' if row.action=='unbond' else None,axis=1)
         self.ystaking_df.block_timestamp=self.ystaking_df.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.ystaking_df.block_timestamp=self.ystaking_df.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        self.ystaking_df.block_timestamp=self.ystaking_df.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x)
         self.ystaking_df['day'] = self.ystaking_df.hr.apply(str).str[:-13]
         self.ystaking_df = self.ystaking_df[['block_timestamp','tx_id','hr','day','action','amount','user','asset_given','asset_received']]
         self.ystaking_df['amount_signed'] = self.ystaking_df.apply(lambda row: row.amount if row.action=='bond' else -row.amount,axis=1)
@@ -176,6 +179,7 @@ class YLunaStakingDataProvider:
         self.ystaking_farm_df = self.ystaking_farm_df[['block_timestamp','tx_id','sender','action','amount']]
         self.ystaking_farm_df.block_timestamp=self.ystaking_farm_df.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.ystaking_farm_df.block_timestamp=self.ystaking_farm_df.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        self.ystaking_farm_df.block_timestamp=self.ystaking_farm_df.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x)
         self.ystaking_farm_df['hr'] = self.ystaking_farm_df.block_timestamp.str[:-5] + '00:00.000'
         self.ystaking_farm_df['day'] = self.ystaking_farm_df.block_timestamp.str[:-9]
         self.ystaking_farm_df['amount_signed'] = self.ystaking_farm_df.apply(lambda row: row.amount if row.action=='bond' else -row.amount,axis=1)
@@ -185,9 +189,7 @@ class YLunaStakingDataProvider:
         self.parse_ystaking_farm()
 
 
-
-
-# In[130]:
+# In[371]:
 
 
 class SwapsDataProvider:
@@ -238,6 +240,7 @@ class SwapsDataProvider:
         self.swaps_df_all = self.router_df_pol.append(self.swaps_df_pol[self.router_df_pol.columns])
         self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x)
         self.swaps_df_all['hr'] = self.swaps_df_all.block_timestamp.str[:-5] + '00:00.000'
         self.swaps_df_all['day'] = self.swaps_df_all.block_timestamp.str[:-9]
         #
@@ -253,7 +256,7 @@ class SwapsDataProvider:
         
 
 
-# In[298]:
+# In[372]:
 
 
 class LPDataProvider:
@@ -327,7 +330,7 @@ class LPDataProvider:
         self.withdraw_ = withdraw_
 
 
-# In[300]:
+# In[373]:
 
 
 class CollectorDataProvider:
@@ -414,13 +417,13 @@ class CollectorDataProvider:
         
         
     def parse(self,withdraw_,provide_,swaps):
-        self.lp_txs = withdraw_[['tx_id']].append(provide_[['tx_id']]).append(swaps[['tx_id']])
+        self.lp_txs = withdraw_[['tx_id']].append(provide_[['tx_id']])                            .append(swaps[['tx_id']])
         self.lp_txs.columns = [c.lower() for c in self.lp_txs.columns]
         self.collector_df.columns = [c.lower() for c in self.collector_df.columns]
         collector_df = self.collector_df
-        print(collector_df.columns)
         collector_df.block_timestamp=collector_df.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         collector_df.block_timestamp=collector_df.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
+        collector_df.block_timestamp=collector_df.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x) 
         collector_df['hr'] = collector_df.block_timestamp.str[:-5] + '00:00.000'
         collector_df['day'] = collector_df.block_timestamp.str[:-9]
         collector_df = collector_df[collector_df.tx_id.isin(set(self.collector_df.tx_id.unique()).difference(self.lp_txs.tx_id.unique()))]
@@ -438,7 +441,7 @@ class CollectorDataProvider:
         
 
 
-# In[302]:
+# In[374]:
 
 
 class DataProvider:
@@ -519,4 +522,3 @@ class DataProvider:
             df['Amount'] = df.apply(lambda row: last_value if row.Time>last_date else 0,axis=1)
             dff = dff.append(df.fillna(0))
         return dff
-

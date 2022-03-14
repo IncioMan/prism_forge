@@ -38,32 +38,31 @@ pe_dp = PrismEmittedDataProvider()
 pe_cp = PrismEmittedChartProvider()
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
-def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp):
+def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, from_csv=False):
     pe_dp.load()
 
-    #ystake_dp.load_from_url()
-    #ystake_dp.write_to_csv()
-    ystake_dp.load_from_csv()
+    if(from_csv):
+        ystake_dp.load_from_csv()
+        refract_dp.load_from_csv()
+        swaps_dp.load_from_csv()
+        lp_dp.load_from_csv()
+        collector_dp.load_from_csv()
+    else:
+        ystake_dp.load_from_url()
+        ystake_dp.write_to_csv()
+        refract_dp.load_from_url()
+        refract_dp.write_to_csv()
+        swaps_dp.load_from_url()
+        swaps_dp.write_to_csv()
+        lp_dp.load_from_url()
+        lp_dp.write_to_csv()
+        collector_dp.load_from_url()
+        collector_dp.write_to_csv()
+    
     ystake_dp.parse()
-
-    #refract_dp.load_from_url()
-    #refract_dp.write_to_csv()
-    refract_dp.load_from_csv()
     refract_dp.parse()
-
-    #swaps_dp.load_from_url()
-    #swaps_dp.write_to_csv()
-    swaps_dp.load_from_csv()
     swaps_dp.parse()
-
-    #lp_dp.load_from_url()
-    #lp_dp.write_to_csv()
-    lp_dp.load_from_csv()
     lp_dp.parse()
-
-    #collector_dp.load_from_url()
-    #collector_dp.write_to_csv()
-    collector_dp.load_from_csv()
     collector_dp.parse(lp_dp.withdraw_, lp_dp.provide_, swaps_dp.swaps_df_all)
 
     ydp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='yLuna'],
@@ -87,7 +86,8 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
 
 pe_dp_prism_emitted, pe_dp_prism_emitted_so_far, pe_dp_dates_to_mark,\
 pdp_dates_to_mark, pdp_asset_used, pdp_asset_unused, ydp_dates_to_mark,\
-ydp_asset_used, ydp_asset_unused = get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp)
+ydp_asset_used, ydp_asset_unused = get_data(pe_dp, ystake_dp, refract_dp, 
+                                            swaps_dp, lp_dp, collector_dp, ydp, pdp, from_csv=True)
 
 ###
 ###
