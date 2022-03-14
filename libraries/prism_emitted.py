@@ -119,6 +119,7 @@ class PrismEmittedChartProvider:
         trend_line = self.prism_emitted_trend_line(prism_emitted)
         so_far = self.prism_emitted_so_far(prism_emitted_so_far)
         marks, lines = self.dates_to_mark(dates_to_mark)
-        return (so_far+trend_line+marks+lines)                .configure_mark(
+        chart =  (so_far+trend_line+marks+lines)                .configure_mark(
                     color='#ffffff'
                 ).properties(width=900).configure_view(strokeOpacity=0).interactive()
+        return chart

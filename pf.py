@@ -39,6 +39,7 @@ pe_cp = PrismEmittedChartProvider()
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
 def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, from_csv=False):
+    print("{} - Loading data...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     pe_dp.load()
 
     if(from_csv):
@@ -87,7 +88,7 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
 pe_dp_prism_emitted, pe_dp_prism_emitted_so_far, pe_dp_dates_to_mark,\
 pdp_dates_to_mark, pdp_asset_used, pdp_asset_unused, ydp_dates_to_mark,\
 ydp_asset_used, ydp_asset_unused = get_data(pe_dp, ystake_dp, refract_dp, 
-                                            swaps_dp, lp_dp, collector_dp, ydp, pdp, from_csv=True)
+                                            swaps_dp, lp_dp, collector_dp, ydp, pdp)
 
 ###
 ###
