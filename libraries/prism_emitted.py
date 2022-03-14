@@ -16,7 +16,7 @@ pd.set_option("display.max_rows", 400)
 alt.renderers.set_embed_options(theme='dark')
 
 
-# In[169]:
+# In[187]:
 
 
 class PrismEmittedDataProvider():
@@ -28,8 +28,10 @@ class PrismEmittedDataProvider():
         dates_to_mark = []
         start_farm = datetime.date(2022, 3, 5)
         shift = 1
-        date_ = start_farm+datetime.timedelta(days=int(365/100*10))
-        dates_to_mark.append((8000000,'10%',date_+datetime.timedelta(days=-shift),date_))
+        #date_ = start_farm+datetime.timedelta(days=int(365/100*10))
+        #dates_to_mark.append((8000000,'10%',date_+datetime.timedelta(days=-shift),date_))
+        date_ = start_farm+datetime.timedelta(days=int(365/100*20))
+        dates_to_mark.append((8000000,'20%',date_+datetime.timedelta(days=-shift),date_))
         date_ = start_farm+datetime.timedelta(days=int(365/100*30))
         dates_to_mark.append((8000000,'30%',date_+datetime.timedelta(days=-shift),date_))
         date_ = start_farm+datetime.timedelta(days=int(365/100*50))
@@ -46,7 +48,7 @@ class PrismEmittedDataProvider():
         self.dates_to_mark = dates_to_mark
         extra_dates_to_mark = []
         date_ = start_farm+datetime.timedelta(days=30)
-        extra_dates_to_mark.append((14000000,'Unlock starts',date_+datetime.timedelta(days=-shift*2),date_))
+        extra_dates_to_mark.append((17000000,'Unlock starts',date_+datetime.timedelta(days=-shift),date_))
         extra_dates_to_mark = pd.DataFrame(extra_dates_to_mark,columns=['height','text','text_date','Date'])
         extra_dates_to_mark.Date = extra_dates_to_mark.Date.apply(str)
         extra_dates_to_mark.text_date = extra_dates_to_mark.text_date.apply(str)
@@ -74,13 +76,13 @@ class PrismEmittedDataProvider():
         self.prism_emitted_so_far = df[df.Date<=str(datetime.datetime.today().date())]
 
 
-# In[170]:
+# In[188]:
 
 
 pe_dp = PrismEmittedDataProvider()
 
 
-# In[171]:
+# In[189]:
 
 
 class PrismEmittedChartProvider:
@@ -134,7 +136,7 @@ class PrismEmittedChartProvider:
 
         c5 = alt.Chart(extra_dates_to_mark).mark_text(
             color='#a6cfe3',
-            angle=0
+            angle=270
         ).encode(
             x=alt.X('text_date'+':T',axis=alt.Axis(title='')),
             y=alt.Y('height',axis=alt.Axis(title='Prism Emitted')),
@@ -151,12 +153,12 @@ class PrismEmittedChartProvider:
                 ).configure_axis(grid=False).configure_view(strokeOpacity=0)
 
 
-# In[172]:
+# In[194]:
 
 
 cp = PrismEmittedChartProvider()
 cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, 
-                       pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-04-15')
+                       pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-05-25')
 
 
 # In[ ]:

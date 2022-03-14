@@ -134,8 +134,8 @@ c3 = alt.Chart(pdp_dates_to_mark).mark_text(
 pluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 
 prism_emitted_chart = pe_cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, 
-                       pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-04-15')
-                       
+                       pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-05-25')
+
 st.altair_chart(prism_emitted_chart, use_container_width=True)
 col1, col2 = st.columns([4,4])
 with col1:
