@@ -21,6 +21,9 @@ alt.renderers.set_embed_options(theme='dark')
 
 class PrismEmittedDataProvider():
     def __init__(self):
+        pass
+
+    def load(self):
         self.calulcate_emission()
         self.dates_to_mark()
     
@@ -119,23 +122,3 @@ class PrismEmittedChartProvider:
         return (so_far+trend_line+marks+lines)                .configure_mark(
                     color='#ffffff'
                 ).properties(width=900).configure_axis(grid=False).configure_view(strokeOpacity=0).interactive()
-
-
-# In[27]:
-
-
-cp = PrismEmittedChartProvider()
-cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-

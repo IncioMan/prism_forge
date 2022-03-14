@@ -27,78 +27,71 @@ def get_url(url):
     return pd.read_csv(url, index_col=0)
     
 cp = ChartProvider()
-
 ystake_dp = YLunaStakingDataProvider(claim,get_url,'./data')
-#ystake_dp.load_from_url()
-#ystake_dp.write_to_csv()
-ystake_dp.load_from_csv()
-ystake_dp.parse()
-
 refract_dp = RefractDataProvider(claim,get_url,'./data')
-#refract_dp.load_from_url()
-#refract_dp.write_to_csv()
-refract_dp.load_from_csv()
-refract_dp.parse()
-
-
-# In[297]:
-
-
 swaps_dp = SwapsDataProvider(claim,get_url,'./data')
-#swaps_dp.load_from_url()
-#swaps_dp.write_to_csv()
-swaps_dp.load_from_csv()
-swaps_dp.parse()
-
-
-# In[299]:
-
-
 lp_dp = LPDataProvider(claim,get_url,'./data')
-#lp_dp.load_from_url()
-#lp_dp.write_to_csv()
-lp_dp.load_from_csv()
-lp_dp.parse()
-
-
-# In[301]:
-
-
 collector_dp = CollectorDataProvider(claim,get_url,'./data')
-#collector_dp.load_from_url()
-#collector_dp.write_to_csv()
-collector_dp.load_from_csv()
-collector_dp.parse(lp_dp.withdraw_, lp_dp.provide_, swaps_dp.swaps_df_all)
-
-
-# In[303]:
-
-
 ydp = DataProvider('yLuna')
-ydp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='yLuna'],
+pdp = DataProvider('pLuna')
+pe_dp = PrismEmittedDataProvider()
+pe_cp = PrismEmittedChartProvider()
+
+@st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
+def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp):
+    pe_dp.load()
+
+    #ystake_dp.load_from_url()
+    #ystake_dp.write_to_csv()
+    ystake_dp.load_from_csv()
+    ystake_dp.parse()
+
+    #refract_dp.load_from_url()
+    #refract_dp.write_to_csv()
+    refract_dp.load_from_csv()
+    refract_dp.parse()
+
+    #swaps_dp.load_from_url()
+    #swaps_dp.write_to_csv()
+    swaps_dp.load_from_csv()
+    swaps_dp.parse()
+
+    #lp_dp.load_from_url()
+    #lp_dp.write_to_csv()
+    lp_dp.load_from_csv()
+    lp_dp.parse()
+
+    #collector_dp.load_from_url()
+    #collector_dp.write_to_csv()
+    collector_dp.load_from_csv()
+    collector_dp.parse(lp_dp.withdraw_, lp_dp.provide_, swaps_dp.swaps_df_all)
+
+    ydp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='yLuna'],
             lp_dp.provide_[lp_dp.provide_.asset=='yLuna'], 
             swaps_dp.yluna_swaps, collector_dp.collector_pyluna[collector_dp.collector_pyluna.asset=='yLuna'])
-ydp.stk_delta(ystake_dp.ystaking_df)
-ydp.stk_farm_delta(ystake_dp.ystaking_farm_df)
-ydp.refact_delta(refract_dp.all_refreact)
-ydp.all_delta()
-ydp.unused_asset(ydp.all_deltas)
+    ydp.stk_delta(ystake_dp.ystaking_df)
+    ydp.stk_farm_delta(ystake_dp.ystaking_farm_df)
+    ydp.refact_delta(refract_dp.all_refreact)
+    ydp.all_delta()
+    ydp.unused_asset(ydp.all_deltas)
 
-
-# In[304]:
-
-
-pdp = DataProvider('pLuna')
-pdp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='pLuna'],
+    pdp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='pLuna'],
             lp_dp.provide_[lp_dp.provide_.asset=='pLuna'], 
             swaps_dp.yluna_swaps, collector_dp.collector_pyluna[collector_dp.collector_pyluna.asset=='pLuna'])
-pdp.refact_delta(refract_dp.all_refreact)
-pdp.all_delta()
-pdp.unused_asset(pdp.all_deltas)
+    pdp.refact_delta(refract_dp.all_refreact)
+    pdp.all_delta()
+    pdp.unused_asset(pdp.all_deltas)
+    return pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark,\
+           pdp.dates_to_mark, pdp.asset_used, pdp.asset_unused, ydp.dates_to_mark,\
+           ydp.asset_used, ydp.asset_unused
+
+pe_dp_prism_emitted, pe_dp_prism_emitted_so_far, pe_dp_dates_to_mark,\
+pdp_dates_to_mark, pdp_asset_used, pdp_asset_unused, ydp_dates_to_mark,\
+ydp_asset_used, ydp_asset_unused = get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp)
 
 ###
 ###
-all_deltas = ydp.asset_used.append(ydp.asset_unused)
+all_deltas = ydp_asset_used.append(ydp_asset_unused)
 all_deltas = ydp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
 c1 = cp.get_yluna_time_area_chart(all_deltas, 
                alt.Scale(scheme='set2'),
@@ -107,11 +100,11 @@ c1 = cp.get_yluna_time_area_chart(all_deltas,
                top_padding = 1500000
         )
 
-c2 = alt.Chart(ydp.dates_to_mark).mark_rule(color='#e45756').encode(
+c2 = alt.Chart(ydp_dates_to_mark).mark_rule(color='#e45756').encode(
     x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
 )
 
-c3 = alt.Chart(ydp.dates_to_mark).mark_text(
+c3 = alt.Chart(ydp_dates_to_mark).mark_text(
     color='#e45756',
     angle=0
 ).encode(
@@ -122,7 +115,7 @@ c3 = alt.Chart(ydp.dates_to_mark).mark_text(
 
 yluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 
-all_deltas = pdp.asset_used.append(pdp.asset_unused)
+all_deltas = pdp_asset_used.append(pdp_asset_unused)
 all_deltas = pdp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
 c1 = cp.get_yluna_time_area_chart(all_deltas, 
                alt.Scale(scheme='set2'),
@@ -131,11 +124,11 @@ c1 = cp.get_yluna_time_area_chart(all_deltas,
                top_padding = 1500000
         )
 
-c2 = alt.Chart(pdp.dates_to_mark).mark_rule(color='#e45756').encode(
+c2 = alt.Chart(pdp_dates_to_mark).mark_rule(color='#e45756').encode(
     x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
 )
 
-c3 = alt.Chart(pdp.dates_to_mark).mark_text(
+c3 = alt.Chart(pdp_dates_to_mark).mark_text(
     color='#e45756',
     angle=0
 ).encode(
@@ -146,9 +139,7 @@ c3 = alt.Chart(pdp.dates_to_mark).mark_text(
 
 pluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
 
-pe_dp = PrismEmittedDataProvider()
-cp = PrismEmittedChartProvider()
-prism_emitted_chart = cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark)
+prism_emitted_chart = pe_cp.prism_emitted_chart(pe_dp_prism_emitted, pe_dp_prism_emitted_so_far, pe_dp_dates_to_mark)
 
 st.altair_chart(prism_emitted_chart, use_container_width=True)
 col1, col2 = st.columns([4,4])
@@ -160,6 +151,27 @@ with col2:
     st.subheader('pLuna usage')
     st.markdown("""How much pLuna is put to use? How much is idle? What happened over time?""")
     st.altair_chart(pluna_chart, use_container_width=True)
+st.markdown("""
+<style>
+    @media (min-width:640px) {
+        .block-container {
+            padding-left: 5rem;
+            padding-right: 5rem;
+        }
+    }
+    @media (min-width:800px) {
+        .block-container {
+            padding-left: 10rem;
+            padding-right: 10rem;
+        }
+    }
+    .block-container
+    {
+        padding-bottom: 1rem;
+        padding-top: 5rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 st.markdown("""
 <style>
 .terminated {
