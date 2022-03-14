@@ -38,26 +38,20 @@ pe_dp = PrismEmittedDataProvider()
 pe_cp = PrismEmittedChartProvider()
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
-def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, from_csv=False):
+def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, to_csv=False):
     print("{} - Loading data...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     pe_dp.load()
-
-    if(from_csv):
-        ystake_dp.load_from_csv()
-        refract_dp.load_from_csv()
-        swaps_dp.load_from_csv()
-        lp_dp.load_from_csv()
-        collector_dp.load_from_csv()
-    else:
-        ystake_dp.load_from_url()
+    ystake_dp.load()
+    refract_dp.load()
+    swaps_dp.load()
+    lp_dp.load()
+    collector_dp.load()
+    
+    if(to_csv):    
         ystake_dp.write_to_csv()
-        refract_dp.load_from_url()
         refract_dp.write_to_csv()
-        swaps_dp.load_from_url()
         swaps_dp.write_to_csv()
-        lp_dp.load_from_url()
         lp_dp.write_to_csv()
-        collector_dp.load_from_url()
         collector_dp.write_to_csv()
     
     ystake_dp.parse()

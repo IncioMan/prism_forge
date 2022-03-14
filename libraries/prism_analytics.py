@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[364]:
+# In[460]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[365]:
+# In[461]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -25,7 +25,7 @@ pLuna_PRISM_Pair = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 yLuna_PRISM_Pair = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
 
 
-# In[366]:
+# In[462]:
 
 
 def claim(claim_hash):
@@ -36,14 +36,14 @@ def claim(claim_hash):
     return df
 
 
-# In[367]:
+# In[463]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[368]:
+# In[464]:
 
 
 class ChartProvider:
@@ -68,7 +68,7 @@ class ChartProvider:
         return chart
 
 
-# In[369]:
+# In[465]:
 
 
 class RefractDataProvider:
@@ -78,6 +78,16 @@ class RefractDataProvider:
         self.claim = claim
         self.get_url = get_url
         self.path_to_data = path_to_data
+    
+    def load(self):
+        self.load_from_url()
+        self.load_from_csv()
+        self.refract_df.columns = [c.lower() for c in self.refract_df.columns]
+        self.refract_df_from_csv.columns = [c.lower() for c in self.refract_df_from_csv.columns]
+        self.refract_cluna_df.columns = [c.lower() for c in self.refract_cluna_df.columns]
+        self.refract_cluna_df_from_csv.columns = [c.lower() for c in self.refract_cluna_df_from_csv.columns]
+        self.refract_df = self.refract_df.append(self.refract_df_from_csv).drop_duplicates()
+        self.refract_cluna_df = self.refract_cluna_df.append(self.refract_cluna_df_from_csv).drop_duplicates()
             
     def load_from_url(self):
         self.refract_df = self.claim(self.refract)
@@ -88,8 +98,8 @@ class RefractDataProvider:
         self.refract_cluna_df.to_csv(f'{self.path_to_data}/refract_cluna.csv')
         
     def load_from_csv(self):
-        self.refract_df = pd.read_csv(f'{self.path_to_data}/refract.csv', index_col=0)
-        self.refract_cluna_df = pd.read_csv(f'{self.path_to_data}/refract_cluna.csv', index_col=0)
+        self.refract_df_from_csv = pd.read_csv(f'{self.path_to_data}/refract.csv', index_col=0)
+        self.refract_cluna_df_from_csv = pd.read_csv(f'{self.path_to_data}/refract_cluna.csv', index_col=0)
         
     def parse_refracting_cluna(self):
         self.refract_cluna_df.columns = [c.lower() for c in self.refract_cluna_df.columns]
@@ -135,7 +145,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[370]:
+# In[466]:
 
 
 class YLunaStakingDataProvider:
@@ -145,6 +155,16 @@ class YLunaStakingDataProvider:
         self.claim = claim
         self.get_url = get_url
         self.path_to_data = path_to_data
+    
+    def load(self):
+        self.load_from_url()
+        self.load_from_csv()
+        self.ystaking_df.columns = [c.lower() for c in self.ystaking_df.columns]
+        self.ystaking_df_from_csv.columns = [c.lower() for c in self.ystaking_df_from_csv.columns]
+        self.ystaking_farm_df.columns = [c.lower() for c in self.ystaking_farm_df.columns]
+        self.ystaking_farm_df_from_csv.columns = [c.lower() for c in self.ystaking_farm_df_from_csv.columns]
+        self.ystaking_df = self.ystaking_df.append(self.ystaking_df_from_csv).drop_duplicates()
+        self.ystaking_farm_df = self.ystaking_farm_df.append(self.ystaking_farm_df_from_csv).drop_duplicates()
             
     def load_from_url(self):
         self.ystaking_df = self.claim(self.ystaking)
@@ -155,11 +175,10 @@ class YLunaStakingDataProvider:
         self.ystaking_farm_df.to_csv(f'{self.path_to_data}/ystaking_farm.csv')
         
     def load_from_csv(self):
-        self.ystaking_df = pd.read_csv(f'{self.path_to_data}/ystaking.csv', index_col=0)
-        self.ystaking_farm_df = pd.read_csv(f'{self.path_to_data}/ystaking_farm.csv', index_col=0)
+        self.ystaking_df_from_csv = pd.read_csv(f'{self.path_to_data}/ystaking.csv', index_col=0)
+        self.ystaking_farm_df_from_csv = pd.read_csv(f'{self.path_to_data}/ystaking_farm.csv', index_col=0)
         
     def parse_ystaking(self):
-        self.ystaking_df.columns = [c.lower() for c in self.ystaking_df.columns]
         self.ystaking_df['action'] = self.ystaking_df.apply(lambda row: row['0_action'] if row['0_action']=='unbond' else row['1_action'],axis=1)
         self.ystaking_df['amount'] = self.ystaking_df.apply(lambda row: row['0_amount'] if row['0_action']=='unbond' else row['1_amount'],axis=1)
         self.ystaking_df['user'] = self.ystaking_df.apply(lambda row: row['to_'] if row.action=='unbond' else row['from_'],axis=1)
@@ -189,7 +208,7 @@ class YLunaStakingDataProvider:
         self.parse_ystaking_farm()
 
 
-# In[371]:
+# In[467]:
 
 
 class SwapsDataProvider:
@@ -200,6 +219,14 @@ class SwapsDataProvider:
         self.get_url = get_url
         self.path_to_data = path_to_data
             
+    def load(self):
+        self.load_from_url()
+        self.load_from_csv()
+        self.swaps_df.columns = [c.lower() for c in self.swaps_df.columns]
+        self.router_df.columns = [c.lower() for c in self.router_df.columns]
+        self.swaps_df = self.swaps_df.append(self.swaps_df_from_csv).drop_duplicates()
+        self.router_df = self.router_df.append(self.router_df_from_csv).drop_duplicates()
+            
     def load_from_url(self):
         self.swaps_df = self.claim(self.swaps)
         self.router_df = self.claim(self.router)
@@ -209,8 +236,8 @@ class SwapsDataProvider:
         self.router_df.to_csv(f'{self.path_to_data}/router.csv')
         
     def load_from_csv(self):
-        self.swaps_df = pd.read_csv(f'{self.path_to_data}/swaps.csv', index_col=0)
-        self.router_df = pd.read_csv(f'{self.path_to_data}/router.csv', index_col=0)
+        self.swaps_df_from_csv = pd.read_csv(f'{self.path_to_data}/swaps.csv', index_col=0)
+        self.router_df_from_csv = pd.read_csv(f'{self.path_to_data}/router.csv', index_col=0)
         
     def parse_simple_swaps(self):
         self.swaps_df.columns = [c.lower() for c in self.swaps_df.columns]
@@ -256,7 +283,7 @@ class SwapsDataProvider:
         
 
 
-# In[372]:
+# In[468]:
 
 
 class LPDataProvider:
@@ -266,6 +293,13 @@ class LPDataProvider:
         self.get_url = get_url
         self.path_to_data = path_to_data
             
+    def load(self):
+        self.load_from_url()
+        self.load_from_csv()
+        self.lp_provide_withdraw_df.columns = [c.lower() for c in self.lp_provide_withdraw_df.columns]
+        self.lp_provide_withdraw_df_from_csv.columns = [c.lower() for c in self.lp_provide_withdraw_df_from_csv.columns]
+        self.lp_provide_withdraw_df = self.lp_provide_withdraw_df.append(self.lp_provide_withdraw_df_from_csv).drop_duplicates()
+            
     def load_from_url(self):
         self.lp_provide_withdraw_df = self.claim(self.lp_provide_withdraw)
         
@@ -273,7 +307,7 @@ class LPDataProvider:
         self.lp_provide_withdraw_df.to_csv(f'{self.path_to_data}/lp_provide_withdraw.csv')
         
     def load_from_csv(self):
-        self.lp_provide_withdraw_df = pd.read_csv(f'{self.path_to_data}/lp_provide_withdraw.csv', index_col=0)
+        self.lp_provide_withdraw_df_from_csv = pd.read_csv(f'{self.path_to_data}/lp_provide_withdraw.csv', index_col=0)
         
     def get_action(self, row):
         for i in range(-1,6):
@@ -330,7 +364,7 @@ class LPDataProvider:
         self.withdraw_ = withdraw_
 
 
-# In[373]:
+# In[469]:
 
 
 class CollectorDataProvider:
@@ -340,6 +374,13 @@ class CollectorDataProvider:
         self.get_url = get_url
         self.path_to_data = path_to_data
             
+    def load(self):
+        self.load_from_url()
+        self.load_from_csv()
+        self.collector_df.columns = [c.lower() for c in self.collector_df.columns]
+        self.collector_df_from_csv.columns = [c.lower() for c in self.collector_df_from_csv.columns]
+        self.collector_df = self.collector_df.append(self.collector_df_from_csv).drop_duplicates()
+               
     def load_from_url(self):
         self.collector_df = self.claim(self.collector)
         
@@ -347,7 +388,7 @@ class CollectorDataProvider:
         self.collector_df.to_csv(f'{self.path_to_data}/collector.csv')
         
     def load_from_csv(self):
-        self.collector_df = pd.read_csv(f'{self.path_to_data}/collector.csv', index_col=0)
+        self.collector_df_from_csv = pd.read_csv(f'{self.path_to_data}/collector.csv', index_col=0)
         
     def get_amount_asset(self,row, pair_addr, asset_addr):
         #Swapping Prism for yLuna
@@ -441,7 +482,7 @@ class CollectorDataProvider:
         
 
 
-# In[374]:
+# In[470]:
 
 
 class DataProvider:
@@ -522,3 +563,4 @@ class DataProvider:
             df['Amount'] = df.apply(lambda row: last_value if row.Time>last_date else 0,axis=1)
             dff = dff.append(df.fillna(0))
         return dff
+
