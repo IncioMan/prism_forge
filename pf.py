@@ -107,7 +107,7 @@ c3 = alt.Chart(ydp_dates_to_mark).mark_text(
     text='text'
 )
 
-yluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
+yluna_chart = (c1 + c2 + c3).properties(height=400).configure_view(strokeOpacity=0)
 
 all_deltas = pdp_asset_used.append(pdp_asset_unused)
 all_deltas = pdp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
@@ -131,21 +131,19 @@ c3 = alt.Chart(pdp_dates_to_mark).mark_text(
     text='text'
 )
 
-pluna_chart = (c1 + c2 + c3).properties(width=800).configure_view(strokeOpacity=0)
+pluna_chart = (c1 + c2 + c3).properties(height=400).configure_view(strokeOpacity=0)
 
 prism_emitted_chart = pe_cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, 
                        pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-05-25')
 
 st.altair_chart(prism_emitted_chart, use_container_width=True)
-col1, col2 = st.columns([4,4])
-with col1:
-    st.subheader('yLuna usage')
-    st.markdown("""How is yLuna used? Staked or in the liquidity pool? What happened over time?""")
-    st.altair_chart(yluna_chart, use_container_width=True)
-with col2:
-    st.subheader('pLuna usage')
-    st.markdown("""How much pLuna is put to use? How much is idle? What happened over time?""")
-    st.altair_chart(pluna_chart, use_container_width=True)
+
+st.subheader('yLuna usage')
+st.markdown("""How is yLuna used? Staked or in the liquidity pool? What happened over time?""")
+st.altair_chart(yluna_chart, use_container_width=True)
+st.subheader('pLuna usage')
+st.markdown("""How much pLuna is put to use? How much is idle? What happened over time?""")
+st.altair_chart(pluna_chart, use_container_width=True)
 st.markdown("""
 <style>
     @media (min-width:640px) {
