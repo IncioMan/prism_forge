@@ -66,6 +66,7 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
     ydp.stk_farm_delta(ystake_dp.ystaking_farm_df)
     ydp.refact_delta(refract_dp.all_refreact)
     ydp.all_delta()
+    ydp.all_deltas = ydp.fill_date_gaps(ydp.all_deltas)
     ydp.unused_asset(ydp.all_deltas)
 
     pdp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='pLuna'],
@@ -73,6 +74,7 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
             swaps_dp.yluna_swaps, collector_dp.collector_pyluna[collector_dp.collector_pyluna.asset=='pLuna'])
     pdp.refact_delta(refract_dp.all_refreact)
     pdp.all_delta()
+    pdp.all_deltas = pdp.fill_date_gaps(pdp.all_deltas)
     pdp.unused_asset(pdp.all_deltas)
     return pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark,\
            pdp.dates_to_mark, pdp.asset_used, pdp.asset_unused, ydp.dates_to_mark,\
