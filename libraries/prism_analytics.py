@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[283]:
+# In[1]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[284]:
+# In[2]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -25,7 +25,7 @@ pLuna_PRISM_Pair = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 yLuna_PRISM_Pair = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
 
 
-# In[285]:
+# In[3]:
 
 
 def claim(claim_hash):
@@ -36,14 +36,14 @@ def claim(claim_hash):
     return df
 
 
-# In[286]:
+# In[4]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[287]:
+# In[5]:
 
 
 class ChartProvider:
@@ -68,7 +68,7 @@ class ChartProvider:
         return chart
 
 
-# In[288]:
+# In[6]:
 
 
 class RefractDataProvider:
@@ -145,7 +145,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[289]:
+# In[7]:
 
 
 class YLunaStakingDataProvider:
@@ -211,7 +211,7 @@ class YLunaStakingDataProvider:
         self.parse_ystaking_farm()
 
 
-# In[290]:
+# In[8]:
 
 
 class SwapsDataProvider:
@@ -288,7 +288,7 @@ class SwapsDataProvider:
         
 
 
-# In[291]:
+# In[30]:
 
 
 class LPDataProvider:
@@ -356,7 +356,7 @@ class LPDataProvider:
         provide_ = provide_[['block_timestamp','sender','tx_id','f_action','prism_amount','asset','asset_amount','hr','day']]
         provide_['amount_signed'] = provide_.asset_amount
         provide_['type'] = 'provide_lp'
-        self.provide_ = provide_.drop_duplicates(ignore_index=True)
+        self.provide_ = provide_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id'],ignore_index=True)
         #
         withdraw_['prism_amount'] = withdraw_.apply(lambda row: row['1_amount'] if row['2_contract_address'] == prism_addr else row['2_amount'],axis=1)
         withdraw_['asset_amount'] = withdraw_.apply(lambda row: row['2_amount'] if row['3_contract_address'] in [yluna_addr,pluna_addr] else row['1_amount'],axis=1)
@@ -366,10 +366,10 @@ class LPDataProvider:
         withdraw_ = withdraw_[['block_timestamp','sender','tx_id','f_action','prism_amount','asset','asset_amount','hr','day']]
         withdraw_['amount_signed'] = -withdraw_.asset_amount
         withdraw_['type'] = 'withdraw_lp'
-        self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True)
+        self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id'],ignore_index=True)
 
 
-# In[292]:
+# In[31]:
 
 
 class CollectorDataProvider:
@@ -487,7 +487,7 @@ class CollectorDataProvider:
         
 
 
-# In[293]:
+# In[32]:
 
 
 class DataProvider:
@@ -500,7 +500,7 @@ class DataProvider:
             columns=['text_date','date','height','text']
         )
     def lp_delta(self, withdraw_, provide_, yluna_swaps, collector_df):
-        self.all_lps = withdraw_[['day','amount_signed','tx_id','type','block_timestamp']]                            .append(provide_[['day','amount_signed','tx_id','type','block_timestamp']])                            .append(yluna_swaps[['day','amount_signed','tx_id','type','block_timestamp']])                            .append(collector_df[['day','amount_signed','tx_id','type','block_timestamp']])
+        self.all_lps = withdraw_[['day','amount_signed','tx_id','type','block_timestamp']]                            .append(provide_[['day','amount_signed','tx_id','type','block_timestamp']])                            .append(yluna_swaps[['day','amount_signed','tx_id','type','block_timestamp']])                            .append(collector_df[['day','amount_signed','tx_id','type','block_timestamp']]).drop_duplicates(ignore_index=True)
         daily_delta_lp = self.all_lps.groupby('day').amount_signed.sum().reset_index()
         daily_delta_lp = daily_delta_lp.sort_values(by='day')
         daily_delta_lp['cumsum'] = daily_delta_lp.amount_signed.cumsum().apply(lambda x: round(x,2))
