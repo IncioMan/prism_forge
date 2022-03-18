@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[49]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[2]:
+# In[50]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -25,7 +25,7 @@ pLuna_PRISM_Pair = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 yLuna_PRISM_Pair = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
 
 
-# In[3]:
+# In[51]:
 
 
 def claim(claim_hash):
@@ -36,14 +36,14 @@ def claim(claim_hash):
     return df
 
 
-# In[4]:
+# In[52]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[5]:
+# In[53]:
 
 
 class ChartProvider:
@@ -55,7 +55,7 @@ class ChartProvider:
         df['Amount (millions)'] = round(df['Amount']/1000000,2).apply(str)+'M'
         chart = alt.Chart(df).mark_area().encode(
             x=alt.X('Time:T',scale=alt.Scale(domain=(min_date,max_date))),
-            y=alt.X('Amount:Q',scale=alt.Scale(domain=(0,df['Amount'].max()+top_padding))),
+            y=alt.X('Amount:Q',scale=alt.Scale(domain=(0,df.groupby(['Time'])['Amount'].sum().max()+top_padding))),
             color=alt.Color('Type:N', 
                         scale=scale_,
                         legend=alt.Legend(
@@ -68,7 +68,7 @@ class ChartProvider:
         return chart
 
 
-# In[6]:
+# In[54]:
 
 
 class RefractDataProvider:
@@ -115,6 +115,7 @@ class RefractDataProvider:
         self.refract_cluna_df_pol['hr'] = self.refract_cluna_df_pol.block_timestamp.str[:-5] + '00:00.000'
         self.refract_cluna_df_pol['day'] = self.refract_cluna_df_pol.block_timestamp.str[:-9]
         self.refract_cluna_df_pol['amount_signed'] = self.refract_cluna_df_pol.amount
+        self.refract_cluna_df_pol = self.refract_cluna_df_pol.drop_duplicates(['tx_id'],ignore_index=True)
         
         
     def parse_refracting_luna(self):
@@ -132,6 +133,7 @@ class RefractDataProvider:
         self.refract_df_pol['day'] = self.refract_df_pol.block_timestamp.str[:-9]
         self.refract_df_pol['amount_signed'] = self.refract_df_pol.apply(lambda row: -row.amount 
                                                         if row.action=='burn_from' else row.amount,axis=1)
+        self.refract_df_pol = self.refract_df_pol.drop_duplicates(['tx_id','asset_given','asset_received'],ignore_index=True)
         
     def parse(self):
         self.parse_refracting_cluna()
@@ -145,7 +147,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[7]:
+# In[55]:
 
 
 class YLunaStakingDataProvider:
@@ -191,7 +193,7 @@ class YLunaStakingDataProvider:
         self.ystaking_df['day'] = self.ystaking_df.hr.apply(str).str[:-13]
         self.ystaking_df = self.ystaking_df[['block_timestamp','tx_id','hr','day','action','amount','user','asset_given','asset_received']]
         self.ystaking_df['amount_signed'] = self.ystaking_df.apply(lambda row: row.amount if row.action=='bond' else -row.amount,axis=1)
-        self.ystaking_df = self.ystaking_df.drop_duplicates(ignore_index=True)
+        self.ystaking_df = self.ystaking_df.drop_duplicates(['tx_id','asset_given','asset_received'],ignore_index=True)
         
     def parse_ystaking_farm(self):
         self.ystaking_farm_df.columns = [c.lower() for c in self.ystaking_farm_df.columns]
@@ -204,14 +206,14 @@ class YLunaStakingDataProvider:
         self.ystaking_farm_df['hr'] = self.ystaking_farm_df.block_timestamp.str[:-5] + '00:00.000'
         self.ystaking_farm_df['day'] = self.ystaking_farm_df.block_timestamp.str[:-9]
         self.ystaking_farm_df['amount_signed'] = self.ystaking_farm_df.apply(lambda row: row.amount if row.action=='bond' else -row.amount,axis=1)
-        self.ystaking_farm_df = self.ystaking_farm_df.drop_duplicates(ignore_index=True)
+        self.ystaking_farm_df = self.ystaking_farm_df.drop_duplicates(['tx_id'],ignore_index=True)
     
     def parse(self):
         self.parse_ystaking()
         self.parse_ystaking_farm()
 
 
-# In[8]:
+# In[56]:
 
 
 class SwapsDataProvider:
@@ -251,7 +253,7 @@ class SwapsDataProvider:
         swaps_df_pol = swaps_df.rename(columns={'sender':'user','ask_asset':'asset_received','offer_asset':'asset_given'})
         swaps_df_pol = swaps_df_pol[['block_timestamp','tx_id','price','user','asset_received','return_amount','asset_given','offer_amount']]
         swaps_df_pol['operation'] = 'swap'
-        self.swaps_df_pol = swaps_df_pol.drop_duplicates(ignore_index=True)
+        self.swaps_df_pol = swaps_df_pol.drop_duplicates(['tx_id','asset_given','asset_received'],ignore_index=True)
         
     def parse_router(self):
         self.router_df.columns = [c.lower() for c in self.router_df.columns]
@@ -264,12 +266,12 @@ class SwapsDataProvider:
                            '1_price':'price','1_return_amount':'return_amount','1_offer_asset':'asset_given'})
         router_df_pol = router_df_1.append(router_df_2)
         router_df_pol['operation'] = 'swap'
-        self.router_df_pol = router_df_pol.drop_duplicates(ignore_index=True)
+        self.router_df_pol = router_df_pol.drop_duplicates(['tx_id','asset_given','asset_received'],ignore_index=True)
     
     def parse(self):
         self.parse_simple_swaps()
         self.parse_router()
-        self.swaps_df_all = self.router_df_pol.append(self.swaps_df_pol[self.router_df_pol.columns])
+        self.swaps_df_all = self.router_df_pol.append(self.swaps_df_pol[self.router_df_pol.columns]).drop_duplicates(['tx_id','asset_given','asset_received'],ignore_index=True)
         self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-4] if len(x) == 23 else x)
         self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-3] if len(x) == 22 else x)
         self.swaps_df_all.block_timestamp=self.swaps_df_all.block_timestamp.apply(str).apply(lambda x: x[:-7] if len(x) == 26 else x)
@@ -288,7 +290,7 @@ class SwapsDataProvider:
         
 
 
-# In[30]:
+# In[57]:
 
 
 class LPDataProvider:
@@ -356,7 +358,7 @@ class LPDataProvider:
         provide_ = provide_[['block_timestamp','sender','tx_id','f_action','prism_amount','asset','asset_amount','hr','day']]
         provide_['amount_signed'] = provide_.asset_amount
         provide_['type'] = 'provide_lp'
-        self.provide_ = provide_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id'],ignore_index=True)
+        self.provide_ = provide_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id','asset'],ignore_index=True)
         #
         withdraw_['prism_amount'] = withdraw_.apply(lambda row: row['1_amount'] if row['2_contract_address'] == prism_addr else row['2_amount'],axis=1)
         withdraw_['asset_amount'] = withdraw_.apply(lambda row: row['2_amount'] if row['3_contract_address'] in [yluna_addr,pluna_addr] else row['1_amount'],axis=1)
@@ -366,10 +368,10 @@ class LPDataProvider:
         withdraw_ = withdraw_[['block_timestamp','sender','tx_id','f_action','prism_amount','asset','asset_amount','hr','day']]
         withdraw_['amount_signed'] = -withdraw_.asset_amount
         withdraw_['type'] = 'withdraw_lp'
-        self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id'],ignore_index=True)
+        self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id','asset'],ignore_index=True)
 
 
-# In[31]:
+# In[66]:
 
 
 class CollectorDataProvider:
@@ -475,8 +477,8 @@ class CollectorDataProvider:
         collector_df = collector_df[collector_df.tx_id.isin(set(self.collector_df.tx_id.unique()).difference(self.lp_txs.tx_id.unique()))]
         collector_df['type'] = 'collector_and_other'
         self.collector_df = collector_df
-        df_pluna = self.parse_asset(self.collector_df, pluna_addr, pLuna_PRISM_Pair, 'pLuna')
-        df_yluna = self.parse_asset(self.collector_df, yluna_addr, yLuna_PRISM_Pair, 'yLuna')
+        df_pluna = self.parse_asset(self.collector_df, pluna_addr, pLuna_PRISM_Pair, 'pLuna').drop_duplicates(['tx_id','asset'],ignore_index=True)
+        df_yluna = self.parse_asset(self.collector_df, yluna_addr, yLuna_PRISM_Pair, 'yLuna').drop_duplicates(['tx_id','asset'],ignore_index=True)
         self.collector_pyluna = df_pluna.append(df_yluna).drop_duplicates(ignore_index=True)
         
         assert len(self.collector_pyluna) > 0
@@ -487,7 +489,7 @@ class CollectorDataProvider:
         
 
 
-# In[32]:
+# In[150]:
 
 
 class DataProvider:
@@ -564,7 +566,8 @@ class DataProvider:
             last_value = df[df.Time==last_date].Amount.values[0]
             df = df.merge(unique_dates, on='Time', how='right')
             df = df[df.Type.isna()]
-            df['Type'] = t
-            df['Amount'] = df.apply(lambda row: last_value if row.Time>last_date else 0,axis=1)
+            if(len(df)>0):
+                df['Type'] = t
+                df['Amount'] = df.apply(lambda row: last_value if row.Time>last_date else 0,axis=1)
             dff = dff.append(df.fillna(0))
         return dff
