@@ -109,7 +109,7 @@ c3 = alt.Chart(ydp_dates_to_mark).mark_text(
     text='text'
 )
 
-yluna_chart = (c1 + c2 + c3).properties(height=400).configure_view(strokeOpacity=0)
+yluna_chart = (c1 + c2 + c3).properties(height=350).configure_view(strokeOpacity=0)
 
 all_deltas = pdp_asset_used.append(pdp_asset_unused)
 all_deltas = pdp.fill_date_gaps(all_deltas, ['2022-02-11','2022-02-12','2022-02-13'])
@@ -133,19 +133,65 @@ c3 = alt.Chart(pdp_dates_to_mark).mark_text(
     text='text'
 )
 
-pluna_chart = (c1 + c2 + c3).properties(height=400).configure_view(strokeOpacity=0)
+pluna_chart = (c1 + c2 + c3).properties(height=350).configure_view(strokeOpacity=0)
 
 prism_emitted_chart = pe_cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, 
                        pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-05-25')
+col0,col1, col2 = st.columns([0.1,1,2])
+with col1:
+    st.subheader('PRISM Farm Emission')
+    st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+    laboris nisi ut aliquip ex ea commodo consequat.""")
+    st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
+    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+    sunt in culpa qui officia deserunt mollit anim id est laborum.""")
+with col2:
+    st.text("")
+    st.text("")
+    st.altair_chart(prism_emitted_chart, use_container_width=True)
 
-st.altair_chart(prism_emitted_chart, use_container_width=True)
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
 
-st.subheader('yLuna usage')
-st.markdown("""How is yLuna used? Staked or in the liquidity pool? What happened over time?""")
-st.altair_chart(yluna_chart, use_container_width=True)
-st.subheader('pLuna usage')
-st.markdown("""How much pLuna is put to use? How much is idle? What happened over time?""")
-st.altair_chart(pluna_chart, use_container_width=True)
+col1, col2, col0 = st.columns([2,1,0.1])
+with col2:
+    st.subheader('yLUNA Usage')
+    st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+    laboris nisi ut aliquip ex ea commodo consequat.""")
+    st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
+    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+    sunt in culpa qui officia deserunt mollit anim id est laborum.""")
+with col1:
+    st.altair_chart(yluna_chart, use_container_width=True)
+
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+
+col0, col1, col2 = st.columns([0.1,1,2])
+with col1:
+    st.subheader('pLUNA Usage')
+    st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+    laboris nisi ut aliquip ex ea commodo consequat.""")
+    st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
+    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+    sunt in culpa qui officia deserunt mollit anim id est laborum.""")
+with col2:
+    st.altair_chart(pluna_chart, use_container_width=True)
+
 st.markdown("""
 <style>
     @media (min-width:640px) {
