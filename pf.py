@@ -7,6 +7,7 @@ import datetime
 from PIL import Image
 from libraries.prism_analytics import DataProvider, ChartProvider, LPDataProvider, SwapsDataProvider, RefractDataProvider, CollectorDataProvider, YLunaStakingDataProvider
 from libraries.prism_emitted import PrismEmittedChartProvider, PrismEmittedDataProvider
+from libraries.xPrismAmps_from_urls import xPrismAmpsChart, xPrismAMPsDP
 
 st.set_page_config(page_title="Prism Forge - Analytics",\
         page_icon=Image.open(requests.get('https://raw.githubusercontent.com/IncioMan/prism_forge/master/images/xPRISM.png',stream=True).raw),\
@@ -32,20 +33,28 @@ refract_dp = RefractDataProvider(claim,get_url,'./data')
 swaps_dp = SwapsDataProvider(claim,get_url,'./data')
 lp_dp = LPDataProvider(claim,get_url,'./data')
 collector_dp = CollectorDataProvider(claim,get_url,'./data')
+xprism_amps_dp = xPrismAMPsDP(claim)
 ydp = DataProvider('yLuna')
 pdp = DataProvider('pLuna')
 pe_dp = PrismEmittedDataProvider()
 pe_cp = PrismEmittedChartProvider()
 
 @st.cache(ttl=3000, show_spinner=False, allow_output_mutation=True)
-def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, to_csv=False):
-    print("{} - Loading data...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
+def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, pdp, xprism_amps_dp, to_csv=False):
+    print("{} - Loading data: ystake_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     ystake_dp.load()
+    print("{} - Loading data: refract_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     refract_dp.load()
+    print("{} - Loading data: swaps_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     swaps_dp.load()
+    print("{} - Loading data: lp_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     lp_dp.load()
+    print("{} - Loading data: collector_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
     collector_dp.load()
-    
+    print("{} - Loading data: xprism_amps_dp...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
+    xprism_amps_dp.load()
+    print("{} - Data Loaded...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
+      
     if(to_csv):    
         ystake_dp.write_to_csv()
         refract_dp.write_to_csv()
@@ -53,11 +62,14 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
         lp_dp.write_to_csv()
         collector_dp.write_to_csv()
     
+    print("{} - Parsing data...".format(str(datetime.datetime.now()).split('.')[0]), flush=True) 
     ystake_dp.parse()
     refract_dp.parse()
     swaps_dp.parse()
     lp_dp.parse()
     collector_dp.parse(lp_dp.withdraw_, lp_dp.provide_, swaps_dp.swaps_df_all)
+    xprism_amps_dp.parse()
+    print("{} - Data parsed...".format(str(datetime.datetime.now()).split('.')[0]), flush=True)
 
     ydp.lp_delta(lp_dp.withdraw_[lp_dp.withdraw_.asset=='yLuna'],
             lp_dp.provide_[lp_dp.provide_.asset=='yLuna'], 
@@ -78,12 +90,12 @@ def get_data(pe_dp, ystake_dp, refract_dp, swaps_dp, lp_dp, collector_dp, ydp, p
     pdp.unused_asset(pdp.all_deltas)
     return pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, pe_dp.dates_to_mark,\
            pdp.dates_to_mark, pdp.asset_used, pdp.asset_unused, ydp.dates_to_mark,\
-           ydp.asset_used, ydp.asset_unused
+           ydp.asset_used, ydp.asset_unused, refract_dp.all_refreact, xprism_amps_dp.perc_amps_n_user
 
 pe_dp_prism_emitted, pe_dp_prism_emitted_so_far, pe_dp_dates_to_mark,\
 pdp_dates_to_mark, pdp_asset_used, pdp_asset_unused, ydp_dates_to_mark,\
-ydp_asset_used, ydp_asset_unused = get_data(pe_dp, ystake_dp, refract_dp, 
-                                            swaps_dp, lp_dp, collector_dp, ydp, pdp)
+ydp_asset_used, ydp_asset_unused, all_refracts, perc_amps_n_user = get_data(pe_dp, ystake_dp, refract_dp, 
+                                            swaps_dp, lp_dp, collector_dp, ydp, pdp, xprism_amps_dp)
 
 ###
 ###
@@ -134,7 +146,7 @@ c3 = alt.Chart(pdp_dates_to_mark).mark_text(
 )
 
 pluna_chart = (c1 + c2 + c3).properties(height=350).configure_view(strokeOpacity=0)
-
+perc_amps_chart = xPrismAmpsChart.chart(perc_amps_n_user)
 prism_emitted_chart = pe_cp.prism_emitted_chart(pe_dp.prism_emitted, pe_dp.prism_emitted_so_far, 
                        pe_dp.dates_to_mark, pe_dp.extra_dates_to_mark, '2022-05-25')
 col0,col1, col2 = st.columns([0.1,1,2])
@@ -179,8 +191,8 @@ st.text("")
 st.text("")
 st.text("")
 
-col0, col1, col2 = st.columns([0.1,1,2])
-with col1:
+col1, col2, col0 = st.columns([2,1,0.1])
+with col2:
     st.subheader('pLUNA Usage')
     st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
@@ -189,8 +201,50 @@ with col1:
     st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
     cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
     sunt in culpa qui officia deserunt mollit anim id est laborum.""")
-with col2:
+with col1:
     st.altair_chart(pluna_chart, use_container_width=True)
+
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+
+col0, col1, col2 = st.columns([0.1,1,2])
+with col1:
+    st.subheader('Refraction')
+    st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+    laboris nisi ut aliquip ex ea commodo consequat.""")
+    st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
+    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+    sunt in culpa qui officia deserunt mollit anim id est laborum.""")
+with col2:
+    st.text("")
+    st.altair_chart(cp.refraction_asset_time(all_refracts).properties(height=350), use_container_width=True)
+
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+
+col1, col2, col0 = st.columns([2,1,0.1])
+with col2:
+    st.subheader('xPRISM pldged to AMPs')
+    st.markdown("""Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco 
+    laboris nisi ut aliquip ex ea commodo consequat.""")
+    st.markdown("""Duis aute irure dolor in reprehenderit in voluptate velit esse 
+    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, 
+    sunt in culpa qui officia deserunt mollit anim id est laborum.""")
+with col1:
+    st.text("")
+    st.altair_chart(perc_amps_chart.properties(height=350), use_container_width=True)
 
 st.markdown("""
 <style>

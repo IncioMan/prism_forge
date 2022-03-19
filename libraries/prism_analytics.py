@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[49]:
+# In[175]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[50]:
+# In[248]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -23,9 +23,19 @@ yluna_addr = 'terra17wkadg0tah554r35x6wvff0y5s7ve8npcjfuhz'
 pluna_addr = 'terra1tlgelulz9pdkhls6uglfn5lmxarx7f2gxtdzh2'
 pLuna_PRISM_Pair = 'terra1persuahr6f8fm6nyup0xjc7aveaur89nwgs5vs'
 yLuna_PRISM_Pair = 'terra1kqc65n5060rtvcgcktsxycdt2a4r67q2zlvhce'
+PRISM_cLUNA_Pair = 'terra1yxgq5y6mw30xy9mmvz9mllneddy9jaxndrphvk'
+PRISM_UST_Pair = 'terra19d2alknajcngdezrdhq40h6362k92kz23sz62u'
+PRISM_xPRISM_Pair = 'terra1czynvm64nslq2xxavzyrrhau09smvana003nrf'
+PRISM_LUNA_Pair = 'terra1r38qlqt69lez4nja5h56qwf4drzjpnu8gz04jd'
 
 
-# In[51]:
+# In[249]:
+
+
+pool_pairs = [pLuna_PRISM_Pair,yLuna_PRISM_Pair,PRISM_cLUNA_Pair,PRISM_LUNA_Pair,PRISM_UST_Pair,PRISM_xPRISM_Pair]
+
+
+# In[177]:
 
 
 def claim(claim_hash):
@@ -36,14 +46,14 @@ def claim(claim_hash):
     return df
 
 
-# In[52]:
+# In[178]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[53]:
+# In[331]:
 
 
 class ChartProvider:
@@ -66,9 +76,30 @@ class ChartProvider:
             tooltip=[alt.Tooltip('Time:T', format='%Y-%m-%d'),'Type:N','Amount (millions):N']
         )
         return chart
+    
+    def refraction_asset_time(self,all_refreact):
+        df = all_refreact.groupby(['day','asset_given']).amount.sum().reset_index()
+        df.columns = ['Date', 'Asset refracted', 'Amount']
+        df['Asset refracted'] = df['Asset refracted'].map({'LUNA':'LUNA','cLUNA':'cLUNA','yLUNA':'Unrefraction'})
+        
+        chart = alt.Chart(df).mark_bar().encode(
+            x=alt.X('Date:T', sort=alt.EncodingSortField(order='ascending')),
+            y="Amount:Q",
+            color=alt.Color('Asset refracted', 
+                            scale=alt.Scale(scheme='set2'),
+                            legend=alt.Legend(
+                                    orient='top-right',
+                                    padding=5,
+                                    legendY=0,
+                                    direction='vertical')),
+            tooltip=[alt.Tooltip('Date:T', format='%Y-%m-%d %H:%M'), 'Asset refracted', 'Amount']
+        ).properties(width=700).configure_axisX(
+            labelAngle=0
+        ).configure_view(strokeOpacity=0)
+        return chart
 
 
-# In[54]:
+# In[180]:
 
 
 class RefractDataProvider:
@@ -147,7 +178,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[55]:
+# In[181]:
 
 
 class YLunaStakingDataProvider:
@@ -213,7 +244,7 @@ class YLunaStakingDataProvider:
         self.parse_ystaking_farm()
 
 
-# In[56]:
+# In[282]:
 
 
 class SwapsDataProvider:
@@ -290,7 +321,7 @@ class SwapsDataProvider:
         
 
 
-# In[57]:
+# In[190]:
 
 
 class LPDataProvider:
@@ -371,7 +402,7 @@ class LPDataProvider:
         self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id','asset'],ignore_index=True)
 
 
-# In[66]:
+# In[191]:
 
 
 class CollectorDataProvider:
@@ -489,7 +520,7 @@ class CollectorDataProvider:
         
 
 
-# In[150]:
+# In[192]:
 
 
 class DataProvider:
