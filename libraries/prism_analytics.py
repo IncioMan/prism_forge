@@ -81,7 +81,7 @@ class ChartProvider:
         df = all_refreact.groupby(['day','asset_given']).amount.sum().reset_index()
         df.columns = ['Date', 'Asset refracted', 'Amount']
         df['Amount'] = df.Amount.apply(lambda x: round(x,2))
-        df['Amount (k)'] = df.Amount.apply(lambda x: f"{round(x/100000,2)}k")
+        df['Amount (k)'] = df.Amount.apply(lambda x: f"{round(x/1000,2)}k")
         df['Asset refracted'] = df['Asset refracted'].map({'LUNA':'LUNA','cLUNA':'cLUNA','yLUNA':'Unrefraction'})
         
         chart = alt.Chart(df).mark_bar().encode(
