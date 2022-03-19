@@ -109,15 +109,15 @@ c1 = cp.get_yluna_time_area_chart(all_deltas,
         )
 
 c2 = alt.Chart(ydp_dates_to_mark).mark_rule(color='#e45756').encode(
-    x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
+    x=alt.X('date'+':T')
 )
 
 c3 = alt.Chart(ydp_dates_to_mark).mark_text(
     color='#e45756',
     angle=0
 ).encode(
-    x=alt.X('text_date'+':T',axis=alt.Axis(labels=False,title='')),
-    y='height',
+    x=alt.X('text_date'+':T',axis=alt.Axis(labels=True,title='')),
+    y=alt.Y('height',axis=alt.Axis(labels=True,title='Amount')),
     text='text'
 )
 
@@ -133,15 +133,15 @@ c1 = cp.get_yluna_time_area_chart(all_deltas,
         )
 
 c2 = alt.Chart(pdp_dates_to_mark).mark_rule(color='#e45756').encode(
-    x=alt.X('date'+':T',axis=alt.Axis(labels=False,title=''))
+    x=alt.X('date'+':T')
 )
 
 c3 = alt.Chart(pdp_dates_to_mark).mark_text(
     color='#e45756',
     angle=0
 ).encode(
-    x=alt.X('text_date'+':T',axis=alt.Axis(labels=False,title='')),
-    y='height',
+    x=alt.X('text_date'+':T',axis=alt.Axis(labels=True,title='')),
+    y=alt.Y('height',axis=alt.Axis(labels=True,title='Amount')),
     text='text'
 )
 
@@ -162,7 +162,7 @@ with col1:
 with col2:
     st.text("")
     st.text("")
-    st.altair_chart(prism_emitted_chart, use_container_width=True)
+    st.altair_chart(prism_emitted_chart.properties(height=350), use_container_width=True)
 
 st.text("")
 st.text("")
