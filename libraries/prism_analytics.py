@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[175]:
+# In[333]:
 
 
 import pandas as pd
@@ -15,7 +15,7 @@ pd.set_option("display.max_rows", 400)
 
 # Trend line of what yLUNA is being used for?  PRISM Farm, yLUNA Staking, LPing, or Nothing.
 
-# In[248]:
+# In[334]:
 
 
 prism_addr = 'terra1dh9478k2qvqhqeajhn75a2a7dsnf74y5ukregw'
@@ -29,13 +29,13 @@ PRISM_xPRISM_Pair = 'terra1czynvm64nslq2xxavzyrrhau09smvana003nrf'
 PRISM_LUNA_Pair = 'terra1r38qlqt69lez4nja5h56qwf4drzjpnu8gz04jd'
 
 
-# In[249]:
+# In[335]:
 
 
 pool_pairs = [pLuna_PRISM_Pair,yLuna_PRISM_Pair,PRISM_cLUNA_Pair,PRISM_LUNA_Pair,PRISM_UST_Pair,PRISM_xPRISM_Pair]
 
 
-# In[177]:
+# In[336]:
 
 
 def claim(claim_hash):
@@ -46,14 +46,14 @@ def claim(claim_hash):
     return df
 
 
-# In[178]:
+# In[337]:
 
 
 def get_url(url):
     return pd.read_csv(url, index_col=0)
 
 
-# In[331]:
+# In[338]:
 
 
 class ChartProvider:
@@ -80,6 +80,8 @@ class ChartProvider:
     def refraction_asset_time(self,all_refreact):
         df = all_refreact.groupby(['day','asset_given']).amount.sum().reset_index()
         df.columns = ['Date', 'Asset refracted', 'Amount']
+        df['Amount'] = df.Amount.apply(lambda x: round(x,2))
+        df['Amount (k)'] = df.Amount.apply(lambda x: f"{round(x/100000,2)}k")
         df['Asset refracted'] = df['Asset refracted'].map({'LUNA':'LUNA','cLUNA':'cLUNA','yLUNA':'Unrefraction'})
         
         chart = alt.Chart(df).mark_bar().encode(
@@ -92,14 +94,14 @@ class ChartProvider:
                                     padding=5,
                                     legendY=0,
                                     direction='vertical')),
-            tooltip=[alt.Tooltip('Date:T', format='%Y-%m-%d %H:%M'), 'Asset refracted', 'Amount']
+            tooltip=[alt.Tooltip('Date:T', format='%Y-%m-%d %H:%M'), 'Asset refracted', 'Amount (k)']
         ).properties(width=700).configure_axisX(
             labelAngle=0
         ).configure_view(strokeOpacity=0)
         return chart
 
 
-# In[180]:
+# In[339]:
 
 
 class RefractDataProvider:
@@ -178,7 +180,7 @@ class RefractDataProvider:
         self.daily_delta_rf = daily_delta_rf
 
 
-# In[181]:
+# In[340]:
 
 
 class YLunaStakingDataProvider:
@@ -244,7 +246,7 @@ class YLunaStakingDataProvider:
         self.parse_ystaking_farm()
 
 
-# In[282]:
+# In[341]:
 
 
 class SwapsDataProvider:
@@ -321,7 +323,7 @@ class SwapsDataProvider:
         
 
 
-# In[190]:
+# In[342]:
 
 
 class LPDataProvider:
@@ -402,7 +404,7 @@ class LPDataProvider:
         self.withdraw_ = withdraw_.drop_duplicates(ignore_index=True).drop_duplicates(['tx_id','asset'],ignore_index=True)
 
 
-# In[191]:
+# In[343]:
 
 
 class CollectorDataProvider:
@@ -520,7 +522,7 @@ class CollectorDataProvider:
         
 
 
-# In[192]:
+# In[344]:
 
 
 class DataProvider:
